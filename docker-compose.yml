@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Service base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: zombieland-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zombieland
+      POSTGRES_PASSWORD: zombieland
+      POSTGRES_DB: zombieland
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - zombieland-network
+
+  # Service backend (API)
+  backend:
+    build:
+      context: ./ZombieLand-back
+      dockerfile: Dockerfile
+    container_name: zombieland-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      - PORT=3000
+      - PG_URL=postgres://zombieland:zombieland@postgres:5432/zombieland
+      - JWT_SECRET=your_jwt_secret_here
+      - SESSION_SECRET=your_session_secret_here
+      - MAIL=your_mail_here
+      - MAIL_PASSWORD=your_mail_password_here
+      - FRONT_URL=http://localhost:5173
+      - BACK_URL=http://localhost:3000
+      - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
+      - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ZombieLand-back:/app
+      - /app/node_modules
+    networks:
+      - zombieland-network
+    command: >
+      sh -c "npm run db:reset && npm run dev"
+
+  # Service frontend
+  frontend:
+    build:
+      context: ./ZombieLand-front
+      dockerfile: Dockerfile
+    container_name: zombieland-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
+      - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ZombieLand-front:/app
+      - /app/node_modules
+    networks:
+      - zombieland-network
+
+networks:
+  zombieland-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
