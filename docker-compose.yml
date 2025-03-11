@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"  # Changé de 5432:5432 à 5433:5432
     networks:
       - zombieland-network
 
@@ -27,25 +27,25 @@ services:
     depends_on:
       - postgres
     environment:
-      - PORT=3000
+      - PORT=4000  # Changé de 3000 à 4000
       - PG_URL=postgres://zombieland:zombieland@postgres:5432/zombieland
       - JWT_SECRET=your_jwt_secret_here
       - SESSION_SECRET=your_session_secret_here
       - MAIL=your_mail_here
       - MAIL_PASSWORD=your_mail_password_here
-      - FRONT_URL=http://localhost:5173
-      - BACK_URL=http://localhost:3000
+      - FRONT_URL=http://localhost:8080  # Changé de 5173 à 8080
+      - BACK_URL=http://localhost:4000/  # Changé de 3000 à 4000
       - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
       - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
     ports:
-      - "3000:3000"
+      - "4000:4000"  # Changé de 3000:3000 à 4000:4000
     volumes:
       - ./ZombieLand-back:/app
       - /app/node_modules
     networks:
       - zombieland-network
     command: >
-      sh -c "npm run db:reset && npm run dev"
+      sh -c "npm run db:reset && PORT=4000 npm run dev"  # Assurer que l'app utilise le port 4000
 
   # Service frontend
   frontend:
@@ -57,11 +57,11 @@ services:
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=http://localhost:4000  # Changé de 3000 à 4000
       - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
       - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
     ports:
-      - "5173:5173"
+      - "8080:5173"  # Changé de 5173:5173 à 8080:5173
     volumes:
       - ./ZombieLand-front:/app
       - /app/node_modules
