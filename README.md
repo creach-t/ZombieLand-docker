@@ -50,12 +50,12 @@ La configuration Docker comprend trois services :
    - Base de données : zombieland
 
 2. **backend** : API Node.js/Express
-   - Port : 3000
-   - URL : http://localhost:3000
+   - Port : 3666
+   - URL : http://localhost:3666
 
 3. **frontend** : Application React/Vite
-   - Port : 5173
-   - URL : http://localhost:5173
+   - Port : 666
+   - URL : http://localhost:666
 
 ## Personnalisation
 
@@ -100,7 +100,7 @@ docker compose exec backend npm run db:reset
 
 ### Le frontend ne peut pas se connecter au backend
 
-Assurez-vous que la variable d'environnement `VITE_API_URL` dans le service frontend pointe vers l'URL correcte de l'API.
+Assurez-vous que la variable d'environnement `VITE_API_URL` dans le service frontend pointe vers l'URL correcte de l'API (http://localhost:3666).
 
 ### Erreur de connexion à la base de données
 
