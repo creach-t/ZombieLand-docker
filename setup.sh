@@ -30,8 +30,8 @@ docker compose up -d
 # Affichage des informations d'accès
 echo -e "${GREEN}=== Installation terminée avec succès ! ===${NC}"
 echo -e "${GREEN}L'application ZombieLand est désormais accessible :${NC}"
-echo -e "- Frontend : http://localhost:5173"
-echo -e "- Backend API : http://localhost:3000"
+echo -e "- Frontend : http://localhost:666"
+echo -e "- Backend API : http://localhost:3666"
 echo -e "- Base de données PostgreSQL : localhost:5432"
 echo -e ""
 echo -e "${YELLOW}Pour arrêter les conteneurs :${NC} docker compose down"
