@@ -81,39 +81,12 @@ services:
       - "traefik.http.routers.zombieland-frontend.tls=true"
       - "traefik.http.routers.zombieland-frontend.tls.certresolver=myresolver"
       - "traefik.http.services.zombieland-frontend.loadbalancer.server.port=5173"
-      
-  # Service Traefik pour gérer les certificats SSL et le routage (optionnel - à supprimer si vous utilisez une instance centralisée)
-  traefik:
-    image: traefik:v2.10
-    container_name: zombieland-traefik
-    restart: unless-stopped
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=creach.t@gmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      # Redirection HTTP vers HTTPS
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certificates:/letsencrypt
-    networks:
-      - zombieland-network
-      - traefik-public
 
 networks:
   zombieland-network:
     driver: bridge
   traefik-public:
-    external: true  # Ce réseau sera créé par la stack Traefik centrale
+    external: true  # Utilise le réseau Traefik existant
     
 volumes:
   postgres-data:
-  traefik-certificates:
