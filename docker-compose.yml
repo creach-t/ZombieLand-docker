@@ -42,14 +42,16 @@ services:
       - /app/node_modules
     networks:
       - zombieland-network
+      - traefik-public
     command: >
       sh -c "npm run db:reset && PORT=3666 npm run dev"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.zombieland.creachtheo.fr`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=myresolver"
-      - "traefik.http.services.backend.loadbalancer.server.port=3666"
+      - "traefik.http.routers.zombieland-backend.rule=Host(`api.zombieland.creachtheo.fr`)"
+      - "traefik.http.routers.zombieland-backend.entrypoints=websecure"
+      - "traefik.http.routers.zombieland-backend.tls=true"
+      - "traefik.http.routers.zombieland-backend.tls.certresolver=myresolver"
+      - "traefik.http.services.zombieland-backend.loadbalancer.server.port=3666"
       
   # Service frontend
   frontend:
@@ -71,14 +73,16 @@ services:
       - /app/node_modules
     networks:
       - zombieland-network
+      - traefik-public
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`zombieland.creachtheo.fr`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
-      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+      - "traefik.http.routers.zombieland-frontend.rule=Host(`zombieland.creachtheo.fr`)"
+      - "traefik.http.routers.zombieland-frontend.entrypoints=websecure"
+      - "traefik.http.routers.zombieland-frontend.tls=true"
+      - "traefik.http.routers.zombieland-frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.zombieland-frontend.loadbalancer.server.port=5173"
       
-  # Service Traefik pour gérer les certificats SSL et le routage
+  # Service Traefik pour gérer les certificats SSL et le routage (optionnel - à supprimer si vous utilisez une instance centralisée)
   traefik:
     image: traefik:v2.10
     container_name: zombieland-traefik
@@ -88,8 +92,7 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=creach.t@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       # Redirection HTTP vers HTTPS
@@ -103,10 +106,13 @@ services:
       - traefik-certificates:/letsencrypt
     networks:
       - zombieland-network
+      - traefik-public
 
 networks:
   zombieland-network:
     driver: bridge
+  traefik-public:
+    external: true  # Ce réseau sera créé par la stack Traefik centrale
     
 volumes:
   postgres-data:
