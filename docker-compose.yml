@@ -15,11 +15,9 @@ services:
     networks:
       - zombieland-network
       
-  # Service backend (API)
+  # Service backend (API) — image construite et poussée sur GHCR par la CI
   backend:
-    build:
-      context: ./ZombieLand-back
-      dockerfile: Dockerfile
+    image: ghcr.io/creach-t/zombieland-back:latest
     container_name: zombieland-backend
     restart: unless-stopped
     depends_on:
@@ -32,14 +30,11 @@ services:
       - MAIL=your_mail_here
       - MAIL_PASSWORD=your_mail_password_here
       - FRONT_URL=https://zombieland.creachtheo.fr  # Modifié pour HTTPS
-      - BACK_URL=https://api.zombieland.creachtheo.fr/  # Modifié pour HTTPS
+      - BACK_URL=https://api-zombieland.creachtheo.fr/  # Modifié pour HTTPS
       - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
       - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
     expose:
       - "3666"  # Exposé au réseau interne uniquement
-    volumes:
-      - ./ZombieLand-back:/app
-      - /app/node_modules
     networks:
       - zombieland-network
       - traefik-public
@@ -47,30 +42,25 @@ services:
       sh -c "npm run db:reset && PORT=3666 npm run dev"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.zombieland-backend.rule=Host(`api.zombieland.creachtheo.fr`)"
+      - "traefik.http.routers.zombieland-backend.rule=Host(`api-zombieland.creachtheo.fr`)"
       - "traefik.http.routers.zombieland-backend.entrypoints=websecure"
       - "traefik.http.routers.zombieland-backend.tls=true"
       - "traefik.http.routers.zombieland-backend.tls.certresolver=myresolver"
       - "traefik.http.services.zombieland-backend.loadbalancer.server.port=3666"
       
-  # Service frontend
+  # Service frontend — image construite et poussée sur GHCR par la CI
   frontend:
-    build:
-      context: ./ZombieLand-front
-      dockerfile: Dockerfile
+    image: ghcr.io/creach-t/zombieland-front:latest
     container_name: zombieland-frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=https://api.zombieland.creachtheo.fr  # Modifié pour HTTPS
+      - VITE_API_URL=https://api-zombieland.creachtheo.fr  # Modifié pour HTTPS
       - VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key_here
       - VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=your_stripe_price_id_here
     expose:
       - "5173"  # Exposé au réseau interne uniquement
-    volumes:
-      - ./ZombieLand-front:/app
-      - /app/node_modules
     networks:
       - zombieland-network
       - traefik-public
