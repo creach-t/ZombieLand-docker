@@ -39,7 +39,7 @@ services:
       - zombieland-network
       - traefik-public
     command: >
-      sh -c "npm run db:reset && PORT=3666 npm run dev"
+      sh -c "node src/migrations/checkDb.js || npm run db:reset; PORT=3666 npm run dev"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.zombieland-backend.rule=Host(`api-zombieland.creachtheo.fr`)"
