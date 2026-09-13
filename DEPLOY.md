@@ -39,9 +39,16 @@ depuis un fichier `.env` situé **dans le même dossier que le compose sur le VP
 (`VPS_DEPLOY_PATH`). Ce fichier n'est **jamais** committé. À créer une fois, puis à
 protéger (`chmod 600 .env`) :
 
+> ⚠️ **Volume Postgres existant** : `POSTGRES_PASSWORD` n'est appliqué qu'à la **première**
+> initialisation du volume `postgres-data`. Sur une base déjà déployée, l'utilisateur
+> `zombieland` a le mot de passe historique (`zombieland`) : mettez cette valeur dans `.env`,
+> ou changez d'abord le mot de passe côté SGBD
+> (`docker exec -it zombieland-db psql -U zombieland -c "ALTER USER zombieland WITH PASSWORD '...';"`)
+> avant de mettre la nouvelle valeur. Sinon le backend ne pourra plus se connecter.
+
 ```bash
 # $VPS_DEPLOY_PATH/.env  (sur le VPS, jamais dans git)
-POSTGRES_PASSWORD=<mot de passe Postgres fort>
+POSTGRES_PASSWORD=<mot de passe de l'utilisateur zombieland — voir avertissement ci-dessus>
 JWT_SECRET=<openssl rand -hex 32>
 SESSION_SECRET=<openssl rand -hex 32>
 JWT_EXPIRY=7d                     # optionnel (défaut 7d)
