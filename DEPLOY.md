@@ -32,6 +32,37 @@ Let's Encrypt n'est géré dans ce dépôt.
 | `CF_ACCESS_CLIENT_ID` | Service token Cloudflare Access (`...access`) |
 | `CF_ACCESS_CLIENT_SECRET` | Secret du service token Cloudflare Access |
 
+## Fichier `.env` sur le VPS (secrets applicatifs) ⚠️
+
+Le `docker-compose.yml` **ne contient plus aucun secret en clair** : il lit les valeurs
+depuis un fichier `.env` situé **dans le même dossier que le compose sur le VPS**
+(`VPS_DEPLOY_PATH`). Ce fichier n'est **jamais** committé. À créer une fois, puis à
+protéger (`chmod 600 .env`) :
+
+```bash
+# $VPS_DEPLOY_PATH/.env  (sur le VPS, jamais dans git)
+POSTGRES_PASSWORD=<mot de passe Postgres fort>
+JWT_SECRET=<openssl rand -hex 32>
+SESSION_SECRET=<openssl rand -hex 32>
+JWT_EXPIRY=7d                     # optionnel (défaut 7d)
+ADMIN_EMAIL=admin@zombieland.fr   # optionnel
+ADMIN_PASSWORD=<mot de passe admin fort>   # optionnel : sinon généré au seed et affiché dans les logs
+MAIL=<compte SMTP>                # optionnel (envoi de mails)
+MAIL_PASSWORD=<mot de passe SMTP> # optionnel
+VITE_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé Stripe>   # optionnel
+VITE_NEXT_PUBLIC_STRIPE_PRICE_ID=<price id Stripe>     # optionnel
+```
+
+`docker compose` **refuse de démarrer** si `POSTGRES_PASSWORD`, `JWT_SECRET` ou
+`SESSION_SECRET` sont absents (variables marquées `:?` dans le compose) — c'est
+volontaire, pour ne jamais déployer avec des secrets par défaut.
+
+> **Rotation :** si des secrets ont pu fuiter (ex. anciens placeholders committés),
+> régénérez `JWT_SECRET`/`SESSION_SECRET` et changez le mot de passe admin. Le compte
+> admin par défaut historique (`admin@zombieland.fr` / `password`) doit être changé
+> immédiatement sur toute base déjà déployée : le seed ne s'exécutant que sur une base
+> **vide**, il ne corrige pas un admin existant.
+
 ## Prérequis Cloudflare (une seule fois)
 
 1. **App Access "SSH"** sur `SSH_HOSTNAME`.
@@ -71,9 +102,10 @@ Automatique à chaque `push` sur `main`, ou manuel via *Actions → CI/CD → Ru
 
 ## Notes / points d'attention
 
-- Le backend démarre avec `npm run db:reset && npm run dev` : **la base est réinitialisée
-  (drop + seed) à chaque (re)démarrage du conteneur**. Pour un vrai environnement de prod,
-  remplacer par une migration one-shot + `npm start`.
+- Le backend démarre avec `node src/migrations/checkDb.js || npm run db:reset; npm run dev` :
+  la base n'est initialisée (create + seed) que si elle est **vide** (garde idempotente
+  `checkDb`). Une base existante n'est jamais wipée. Pour un vrai environnement de prod,
+  préférer des migrations versionnées + `npm start` (au lieu de `npm run dev` en watch).
 - Les images sont privées sur GHCR : le `docker login` sur le VPS (via `GHCR_PAT`) est
   donc nécessaire au `docker compose pull`.
 - Le routage TLS est assuré par le Traefik central (`tls.certresolver=myresolver` conservé
