@@ -1,0 +1,8 @@
+# Secrets — ne jamais committer (voir .env.example / DEPLOY.md)
+.env
+*.env
+!.env.example
+
+# Repos sources montés localement (front/back ont leur propre dépôt)
+/ZombieLand-back/
+/ZombieLand-front/
